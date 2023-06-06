@@ -1,19 +1,18 @@
-from datetime import datetime, timedelta
+from datetime import datetime
 from airflow import DAG
 from airflow.operators.bash_operator import BashOperator
-from pipelines.git_clone import GitCloneTG
+from pipelines.git import GitSyncPipeline
 
-dag_args = {
+default_args = {
     'owner': 'da',
-    'depends_on_past': False,
     'start_date': datetime(2023, 6, 1, 0, 0, 0),
 }
 
-with DAG(dag_id='mogan_build_and_test', schedule="@hourly", default_args=dag_args) as dag:
+with DAG(dag_id='mogan_build_and_test', schedule="@hourly", max_active_runs=1, default_args=default_args) as dag:
     task = BashOperator(
         task_id='show_xmake_version',
         bash_command='xmake --version | head -n 1',
     )
-    git_clone = GitCloneTG()
+    git_clone = GitSyncPipeline()
     
     task >> git_clone()

@@ -6,12 +6,11 @@ from pathlib import Path
 
 class GitSyncPipeline:
     def __init__(self):
-        pass
+        self.proj_dir = Path.home() / "XmacsLabs" / "mogan"
 
     def clone_or_pull(self) -> callable:
         def _inner(**kwargs):
-            proj_dir = Path.home() / "XmacsLabs" / "mogan"
-            if Path(proj_dir).exists():
+            if Path(self.proj_dir).exists():
                 return "git_sync.git_pull"
             else:
                 return "git_sync.git_clone"
@@ -33,7 +32,8 @@ class GitSyncPipeline:
             )
             t3 = BashOperator(
                 task_id='git_pull',
-                bash_command='cd ~/XmacsLabs/mogan && git pull',
+                cwd=str(self.proj_dir),
+                bash_command='git pull',
             )
             t1 >> cond >> [t2, t3]
 
